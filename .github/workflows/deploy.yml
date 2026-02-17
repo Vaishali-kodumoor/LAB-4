@@ -1,20 +1,34 @@
-name: Deploy Website
+name: CI Pipeline with Deploy
 
+# Trigger deploy automatically on push to main
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+
+# Give Actions permission to write to repository (needed for gh-pages)
+permissions:
+  contents: write
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1️⃣ Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
+      # 2️⃣ Prepare site folder
+      - name: Prepare site assets
+        run: |
+          mkdir -p site        # ensure folder exists
+          touch site/.nojekyll # prevents Jekyll build
+
+      # 3️⃣ Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
+          publish_dir: ./site       # folder containing website
+          publish_branch: gh-pages  # target branch for GitHub Pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+          allow_empty_commit: true
